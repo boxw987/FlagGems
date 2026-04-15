@@ -1,5 +1,6 @@
 import logging
 
+import torch
 import triton
 import triton.language as tl
 
@@ -21,9 +22,22 @@ def log10(A):
 
 def log10_(A):
     logger.debug("GEMS LOG10_")
-    return log10_func(A, out0=A)
+    if A.is_contiguous():
+        return log10_func(A, out0=A)
+
+    buf = A.contiguous()
+    log10_func(buf, out0=buf)
+    A.copy_(buf)
+    return A
 
 
 def log10_out(A, out):
     logger.debug("GEMS LOG10_OUT")
-    return log10_func(A, out0=out)
+    src = A if A.is_contiguous() else A.contiguous()
+    if out.is_contiguous():
+        return log10_func(src, out0=out)
+
+    out_buf = torch.empty(out.shape, device=out.device, dtype=out.dtype)
+    log10_func(src, out0=out_buf)
+    out.copy_(out_buf)
+    return out
