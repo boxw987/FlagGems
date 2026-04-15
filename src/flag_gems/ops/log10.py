@@ -7,13 +7,11 @@ from flag_gems.utils import pointwise_dynamic
 
 logger = logging.getLogger(__name__)
 
-_INV_LN10 = 0.4342944819032518
-
 
 @pointwise_dynamic(promotion_methods=[(0, "INT_TO_FLOAT")])
 @triton.jit
 def log10_func(x):
-    return tl.log(x.to(tl.float32)) * _INV_LN10
+    return tl.log(x.to(tl.float32)) * 0.4342944819032518
 
 
 def log10(A):
