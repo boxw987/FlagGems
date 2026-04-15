@@ -58,6 +58,7 @@ forward_operations = [
     ("special_i0e", torch.ops.aten.special_i0e, FLOAT_DTYPES),
     ("logical_not", torch.logical_not, INT_DTYPES + BOOL_DTYPES),
     ("log", torch.log, FLOAT_DTYPES),
+    ("log10", torch.log10, FLOAT_DTYPES),
     ("special_i1", torch.special.i1, FLOAT_DTYPES),
     ("logit", lambda a: torch.logit(a, eps=1e-6), FLOAT_DTYPES),
     # ("triu", torch.triu, FLOAT_DTYPES),  # do not support 1d shapes
@@ -146,6 +147,7 @@ forward_inplace_operations = [
     ("silu_", lambda a: torch.nn.functional.silu(a, inplace=True), FLOAT_DTYPES),
     # Trigonometric operations
     ("cos_", torch.cos_, FLOAT_DTYPES),
+    ("log10_", lambda a: a.log10_(), FLOAT_DTYPES),
     ("sin_", torch.sin_, FLOAT_DTYPES),
     ("sinh_", lambda a: a.sinh_(), FLOAT_DTYPES),
     ("tan_", torch.tan_, FLOAT_DTYPES),
@@ -446,6 +448,16 @@ def test_perf_prelu():
     bench = PreluBenchmark(
         op_name="prelu",
         torch_op=torch.ops.aten.prelu,
+        dtypes=FLOAT_DTYPES,
+    )
+    bench.run()
+
+
+@pytest.mark.log10
+def test_log10_out_perf():
+    bench = UnaryPointwiseBenchmark(
+        op_name="log10.out",
+        torch_op=lambda inp: torch.log10(inp, out=torch.empty_like(inp)),
         dtypes=FLOAT_DTYPES,
     )
     bench.run()
