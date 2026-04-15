@@ -42,6 +42,8 @@ def _launch_log10(in_tensor, out_tensor):
         return
 
     compute_fp64 = in_tensor.dtype == torch.float64
+    block_size = 256
+    num_warps = 4
     grid = lambda meta: (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
 
     with torch_device_fn.device(in_tensor.device):
@@ -50,7 +52,8 @@ def _launch_log10(in_tensor, out_tensor):
             out_tensor,
             n_elements,
             COMPUTE_FP64=compute_fp64,
-            BLOCK_SIZE=1024,
+            BLOCK_SIZE=block_size,
+            num_warps=num_warps,
         )
 
 
